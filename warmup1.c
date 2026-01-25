@@ -2,7 +2,7 @@
  *
  *Implementation of warmup1.c from the warmup1 assignment
  *
- *
+ *Usage: ./warmup1 sort FILENAME || ./warmup1 sort STDIN
  *
  */
 
@@ -35,7 +35,7 @@ static void ProcessFile(FILE *fp, const char *filename);
 static int ParseLine(char *line, Txn, *trans, int line_num, const char *filename);
 static void PrintTransactions(My402List *list);
 static void SortedInsert(My402List *list, Txn *trans, const char *filename);
-static void FreeTxn(My402List *list);
+static void FreeTxns(My402List *list);
 
 static void FormatDate(time_t ts, char *buf);
 static void FormatAmount(int cents, int is_negative, char *buf);
@@ -106,7 +106,7 @@ static void ProcessFile(FILE *fp, const char *filename){
 			if (len >= MAX_LINE_LENGTH){
 				fprintf(stderr, "error: line %d in '%s' is too long\n", 
                         line_num, filename);
-                //Free All transactions 
+                FreeTxns(list); 
                 exit(1);
 			}
 		} else if (len > 0) {
@@ -121,13 +121,13 @@ static void ProcessFile(FILE *fp, const char *filename){
 		Txn *trans = (Txn *)malloc(sizeof(Txn));
 		if (trans == NULL){
 			fprintf(stderr, "error: malloc failed\n");
-            //Free TXNs
+            FreeTxns(list);
             exit(1);
 		}
 
 		if (!ParseLine(line, trans, line_num, filename)){
 			free(trans);
-			//FREE TXNS
+			FreeTxns(list);
 			exit(1);
 		}
 
@@ -143,7 +143,7 @@ static void ProcessFile(FILE *fp, const char *filename){
 
 	PrintTransactions(&list);
 
-	//FREE TXN
+	FreeTxns(list);
 
 }
 
@@ -310,7 +310,7 @@ static void SortedInsert(My402List *list, Txn *trans, const char *filename){
 		if (curr->ts == trans->ts){
 			fprintf(stderr, "error: duplicate timestamp in '%s'\n", filename);
 			free(trans);
-			//Free all transactions before exiting
+			FreeTxns(list);
 			exit(1);
 		}
 
@@ -318,7 +318,7 @@ static void SortedInsert(My402List *list, Txn *trans, const char *filename){
 			if (!My402ListInsertBefore(list, trans, elem)){
 				fprintf(stderr, "error: failed to insert transaction\n");
                 free(trans);
-                //Free all transactions before exiting
+                FreeTxns(list);
                 exit(1);
 			}
 			return
@@ -328,7 +328,7 @@ static void SortedInsert(My402List *list, Txn *trans, const char *filename){
 	if (!My402ListAppend(list, trans)){
 		fprintf(stderr, "error: failed to insert transaction\n");
         free(trans);
-        //Free all transactions before exiting
+        FreeTxns(list);
         exit(1);
 	}
 }
@@ -406,14 +406,31 @@ static void PrintTransactions(My402List *list){
     	} else {
     		balance -= trans->cents;
     	}
+
+    	char date_buf[16];
+    	FormatDate(trans->ts, date_buf);
+
+    	char amount_buf[16];
+    	int is_negative = (trans->type == '-');
+    	FormatAmount(trans->cents, is_negative, amount_buf);
+
+    	char balance_buf[16];
+    	long abs_balance;
+    	int is_negative_balance;
+
+    	if (balance < 0){
+    		abs_balance = -balance;
+    		is_negative_balance = TRUE;
+    	} else {
+    		abs_balance = balance;
+    		is_negative_balance = FALSE;
+    	}
+    	FormatAmount((int)abs_balance, is_negative_balance, balance_buf);
+
+    	printf("| %s | %-24s | %14s | %14s |\n", date_buf, trans->desc, amount_buf, balance_buf);
     }
 
-    char date_buf[16];
-    FormatDate(trans->ts, date_buf);
-
-    char amount_buf[16];
-    int is_negative = (trans->type == '-');
-    FormatAmount(trans->cents, is_negative, amount_buf);
+    printf("%s\n", border);
 }
 
 /*
@@ -422,7 +439,7 @@ static void PrintTransactions(My402List *list){
  *
  *
  */
-static void FreeTxn(My402List *list){
+static void FreeTxns(My402List *list){
 	My402ListElem *elem;
 
 	for (elem = My402ListFirst(list); elem != NULL; elem = My402ListNext(list, elem)){
