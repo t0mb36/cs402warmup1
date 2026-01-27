@@ -16,7 +16,6 @@
 
 #include "my402list.h"
 #include "cs402.h"
-#include "my402list.h"
 
 #define MAX_LINE_LENGTH 1024
 #define MAX_DESC_LENGTH 24
@@ -32,7 +31,7 @@ typedef struct tagTxn {
 
 static void Usage(void);
 static void ProcessFile(FILE *fp, const char *filename);
-static int ParseLine(char *line, Txn, *trans, int line_num, const char *filename);
+static int ParseLine(char *line, Txn *trans, int line_num, const char *filename);
 static void PrintTransactions(My402List *list);
 static void SortedInsert(My402List *list, Txn *trans, const char *filename);
 static void FreeTxns(My402List *list);
@@ -106,7 +105,7 @@ static void ProcessFile(FILE *fp, const char *filename){
 			if (len >= MAX_LINE_LENGTH){
 				fprintf(stderr, "error: line %d in '%s' is too long\n", 
                         line_num, filename);
-                FreeTxns(list); 
+                FreeTxns(&list); 
                 exit(1);
 			}
 		} else if (len > 0) {
@@ -121,13 +120,13 @@ static void ProcessFile(FILE *fp, const char *filename){
 		Txn *trans = (Txn *)malloc(sizeof(Txn));
 		if (trans == NULL){
 			fprintf(stderr, "error: malloc failed\n");
-            FreeTxns(list);
+            FreeTxns(&list);
             exit(1);
 		}
 
 		if (!ParseLine(line, trans, line_num, filename)){
 			free(trans);
-			FreeTxns(list);
+			FreeTxns(&list);
 			exit(1);
 		}
 
@@ -143,15 +142,15 @@ static void ProcessFile(FILE *fp, const char *filename){
 
 	PrintTransactions(&list);
 
-	FreeTxns(list);
+	FreeTxns(&list);
 
 }
 
-static int ParseLine(char *line, Txn, *trans, int line_num, const char *filename){
+static int ParseLine(char *line, Txn *trans, int line_num, const char *filename){
 	char *fields[4];
 	int field_count = 0;
 	char *ptr = line;
-	char *ptr = line;
+	char *start = line;
 
 	while (*ptr != '\0' && field_count < 4){
 		if (*ptr == '\t'){
@@ -223,7 +222,7 @@ static int ParseLine(char *line, Txn, *trans, int line_num, const char *filename
         return FALSE;
     }
     
-    trans->timestamp = (time_t)ts_val;  
+    trans->ts = (time_t)ts_val;  
 
     //Parse Amount 
     char *amount_str = fields[2];
@@ -321,7 +320,7 @@ static void SortedInsert(My402List *list, Txn *trans, const char *filename){
                 FreeTxns(list);
                 exit(1);
 			}
-			return
+			return;
 		}
 	}
 
@@ -347,7 +346,7 @@ static void FormatAmount(int cents, int is_negative, char *buf){
 	}
 
 	char num_buf[20];
-	sprintf(num_buf, "%d.%02d", dollars, cent_part);
+	sprintf(num_buf, "%d.%02d", dollars, remainder);
 
 	char format_buf[20];
 	int dec_pos = (int)(strchr(num_buf, '.') - num_buf);
@@ -399,7 +398,7 @@ static void PrintTransactions(My402List *list){
     printf("%s\n", border);
 
     for (elem = My402ListFirst(list); elem != NULL; elem = My402ListNext(list, elem)){
-    	Txn *trans = (Txn *)(elem->object);
+    	Txn *trans = (Txn *)(elem->obj);
 
     	if (trans->type == '+'){
     		balance += trans->cents;
