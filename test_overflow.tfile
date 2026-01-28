@@ -1,0 +1,4 @@
++	1500000000	9999999.99	Max amount before overflow
++	1500086400	1.00	This pushes balance over 10 million
++	1500172800	5000000.00	Adding more to balance
+-	1500259200	100.00	Small withdrawal from huge balance
