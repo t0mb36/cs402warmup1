@@ -14,7 +14,7 @@ also fine).
 If you have additional instruction for the grader, replace "(Comments?)" with your
 instruction (or with the word "none" if you don't have additional instructions):
 
-    Additional instructions for building/running this assignment: none
+    Additional instructions for building/running this assignment: after building, run follows spec i.e. ./warmup1 sort FILE or via stdin
 
 +-------------------------+
 | SELF-GRADING (Required) |
@@ -66,4 +66,7 @@ Comments on design decisions:
 
 For implementation of any numeric dollar amounts I went with an inplementation of cents rather than proceeding with floating point dollar amount, we learned this pattern in cs455x and wanted to implement this way as to avoid any unwanted and hard to track floating point arithmentic bugs.
 
-Straigh forward implementation. handled errors with verbosity inside of functions, also maintained list as sorted on every insert to avoid having to sort after insert (way too complex and wouldnt scale). Since we always start with an empty list, the list is always sorted and inserting into a sorted list is much easier.
+Straigh forward implementation. handled errors with verbosity inside of functions and followed spec and grading guidelines for verbosity/ I maintained the my402list as sorted on every insert to avoid having to sort after insert (way too complex and wouldnt scale). Since we always start with an empty list, the list is always sorted and inserting into a sorted list is much easier.
+
+I parse the input line by line after passing validity checks, since our formatting requirement is strict and values are tab seperated, i am able to parse out the correct values and save in data structire called Txn that i can then use to isnert into our list.
+

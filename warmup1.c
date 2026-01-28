@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
 		
 		//check if input is directory
 		if (S_ISDIR(st.st_mode)){
-			fprintf(stderr, "error: '%s' is a directory\n", argv[2]);
+			fprintf(stderr, "error: '%s' is a directory, input must be a file or stdin\n", argv[2]);
             exit(1);
 		}
 

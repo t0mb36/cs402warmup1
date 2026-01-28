@@ -1,0 +1,14 @@
+#compiled object files
+*.o
+
+#executable files
+warmup1
+listtest
+
+#precompiled headers
+*.gch
+
+#core dump
+core
+
+
